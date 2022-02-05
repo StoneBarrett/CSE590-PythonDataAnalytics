@@ -55,6 +55,9 @@ def drive(yards_to_TD, successprct, yardrange):
     for i in range(4):
         currentdownyards = down(successprct, yardrange)
         yards_to_TD -= currentdownyards
+        # Extra penalty handling
+        if yards_to_TD > 100:
+            yards_to_TD = 100
         yardsgained += currentdownyards
         # Case: first down
         if yardsgained >= 10:
@@ -93,35 +96,60 @@ def drive_depicted(yards_to_TD, successprct, yardrange):
     extrapointchance = randint(1,100)
     yardsgained = 0
     currentdownyards = 0
-    depiction = "O----|----|----|----|----|----|----|----|----|----X"
-    announcement = "x Down, y Yds to Go"
+    depiction = list("O----------------------------------------------------------------------------------------------------X")
     
-
     # Running 4 downs
     for i in range(4):
         currentdownyards = down(successprct, yardrange)
         yards_to_TD -= currentdownyards
         yardsgained += currentdownyards
+        # Extra penalty handling
+        if yards_to_TD > 100:
+            yards_to_TD = 100
         # Case: first down
         if yardsgained >= 10:
             i = 0
+            # Edge case handling
+            if yards_to_TD < 0:
+                yards_to_TD = 0
+            depiction[100 - yards_to_TD] = ">"
+            print(*depiction)
+            print("1st Down, {} yards to go".format(yards_to_TD))
         if yards_to_TD <= 0:
             # Case: score and extra point
             if extrapointchance >= 90:
                 pointsscored = 7
                 oposition = 80
+                depiction[101] = "T"
+                print(*depiction)
+                print("TD + Extra Point Scored!")
                 break
             # Case: score and no extra point
             else:
                 pointsscored = 6
                 oposition = 80
+                depiction[101] = "T"
+                print(*depiction)
+                print("TD Scored!")
                 break
         # Case: havent scored by end of 4th down
         if i == 3:
             pointsscored = 0
             oposition = 100 - yards_to_TD
-        # Printing
-        print("")
+            # Edge case handling
+            if yards_to_TD < 0:
+                yards_to_TD = 0
+            depiction[100 - yards_to_TD] = "Q"
+            print(*depiction)
+            print("Turnover, {} yards to go".format(yards_to_TD))
+            break
+        # Case: havent scored but more downs remaining
+        # Edge case handling
+        if yards_to_TD < 0:
+            yards_to_TD = 0
+        depiction[100 - yards_to_TD] = ">"
+        print(*depiction)
+        print("{} Down, {} yards to go".format(i+1, yards_to_TD))
 
     # Returning
     returntuple = (pointsscored, oposition)
@@ -143,12 +171,12 @@ def simulategame(num_drives, prctT1, yrangeT1, prctT2, yrangeT2):
     for i in range(num_drives):
 
         # Drive T1
-        t1tuple = drive(yards_to_TD, prctT1, yrangeT1)
+        t1tuple = drive_depicted(yards_to_TD, prctT1, yrangeT1)
         scoreT1 += t1tuple[0]
         yards_to_TD = t1tuple[1]
 
         # Drive T2
-        t2tuple = drive(yards_to_TD, prctT2, yrangeT2)
+        t2tuple = drive_depicted(yards_to_TD, prctT2, yrangeT2)
         scoreT2 += t2tuple[0]
         yards_to_TD = t2tuple[1]
 
